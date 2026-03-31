@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Peg Board Geometry Game</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1>Digital Peg Board</h1>
+            <div class="score-container">
+                Score: <span id="score">0</span>
+            </div>
+            <div class="controls">
+                <button id="btn-rotate" title="Rotate Shape (+90deg)">🔄 Rotate</button>
+                <button id="btn-delete" title="Delete Shape">🗑️ Delete</button>
+                <button id="btn-reset" title="Reset Board">⚠️ Reset Board</button>
+            </div>
+        </header>
+        
+        <main class="game-main">
+            <aside class="shape-panel" id="shape-panel">
+                <h2>Shapes</h2>
+                <div class="shapes-list" id="shapes-list">
+                    <!-- Shapes will be injected here by shapes.js -->
+                </div>
+            </aside>
+            
+            <section class="board-container" id="board-container">
+                <svg id="peg-board" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Pegs and dropped shapes will be added here -->
+                    <g id="pegs-layer"></g>
+                    <!-- We will render a grid visually, and shapes on top -->
+                    <g id="shapes-layer"></g>
+                    <!-- Dragging shapes might be placed here or at top level body -->
+                </svg>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modules -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

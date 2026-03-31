@@ -1,0 +1,226 @@
+:root {
+    --bg-color: #f0f8ff;
+    --panel-bg: #ffffff;
+    --board-bg: #fffcf0;
+    --peg-color: #d1d8e0;
+    --text-color: #333333;
+    --primary-color: #ff6b6b; /* Reddish UI element */
+    --secondary-color: #4ecdc4; /* Cyan UI element */
+    --score-color: #ffd166; /* Yellow score */
+    --hover-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Nunito', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    user-select: none; /* Prevent text selection while dragging */
+}
+
+.game-container {
+    width: 95vw;
+    height: 95vh;
+    background-color: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background-color: var(--secondary-color);
+    color: white;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    z-index: 10;
+}
+
+.game-header h1 {
+    font-size: 1.8rem;
+    font-weight: 900;
+    text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+}
+
+.score-container {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background-color: var(--score-color);
+    color: #333;
+    padding: 5px 20px;
+    border-radius: 30px;
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1);
+}
+
+.controls button {
+    background-color: white;
+    border: none;
+    color: var(--secondary-color);
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 8px 16px;
+    margin-left: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 0px rgba(0,0,0,0.1);
+    font-family: 'Nunito', sans-serif;
+}
+
+.controls button:hover {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0px rgba(0,0,0,0.1);
+    background-color: #f1f2f6;
+}
+
+.controls button:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+.controls #btn-reset {
+    color: var(--primary-color);
+}
+
+.controls #btn-rotate:disabled, .controls #btn-delete:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 4px 0px rgba(0,0,0,0.1);
+}
+
+.game-main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.shape-panel {
+    width: 250px;
+    background-color: var(--panel-bg);
+    border-right: 3px dashed #eee;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 5;
+    overflow-y: auto;
+}
+
+.shape-panel h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: var(--secondary-color);
+}
+
+.shapes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.shape-item {
+    width: 100%;
+    height: 120px;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.shape-item:hover {
+    background-color: white;
+    transform: scale(1.05);
+    box-shadow: var(--hover-shadow);
+    border-color: var(--secondary-color);
+}
+
+.shape-item:active {
+    cursor: grabbing;
+}
+
+.panel-svg {
+    pointer-events: none;
+    width: 80px;
+    height: 80px;
+    overflow: visible;
+}
+
+.board-container {
+    flex: 1;
+    background-color: var(--board-bg);
+    position: relative;
+    overflow: hidden;
+}
+
+#peg-board {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.peg {
+    fill: var(--peg-color);
+}
+
+/* Shape elements on the board */
+.board-shape {
+    cursor: grab;
+    transition: filter 0.2s, stroke 0.2s;
+    /* transition transform when snapping to grid maybe? Handled in JS */
+}
+
+.board-shape:active {
+    cursor: grabbing;
+}
+
+.board-shape.selected {
+    filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+    stroke: #333;
+    stroke-width: 3px;
+}
+
+.board-shape.valid-placement {
+    filter: drop-shadow(0 0 15px #2ed573);
+}
+
+.board-shape.invalid-placement {
+    filter: drop-shadow(0 0 15px #ff4757);
+}
+
+/* When a shape is actively being dragged, it is placed in a drag container overlay */
+#drag-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none; /* Let pointer events pass through as needed, but shape will capture */
+    z-index: 9999;
+}
+
+.dragging-shape {
+    position: absolute;
+    pointer-events: none; /* Crucial: so we can find elements *under* the cursor like board */
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+    overflow: visible;
+}
