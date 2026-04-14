@@ -60,7 +60,7 @@ export const CollisionEngine = {
     },
 
     intersect(r1, r2) {
-        const margin = 2; // small margin of error for adjacent snapping
+        const margin = 1; // small margin of error for adjacent snapping  //Changes: margin=2-->margin=1
         return !(r2.left >= r1.right - margin || 
                  r2.right <= r1.left + margin || 
                  r2.top >= r1.bottom - margin ||
