@@ -6,6 +6,14 @@
     <title>Digital Peg Board Geometry Game</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <script type="importmap">
+      {
+        "imports": {
+          "firebase/app": "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js",
+          "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js"
+        }
+      }
+    </script>
 </head>
 <body>
     <div class="game-container">
@@ -15,8 +23,11 @@
                 Score: <span id="score">0</span>
             </div>
             <div class="controls">
-                <button id="btn-rotate" title="Rotate Shape (+90deg)">🔄 Rotate</button>
-                <button id="btn-delete" title="Delete Shape">🗑️ Delete</button>
+                <button id="btn-save" title="Save Design">💾 Save</button>
+                <button id="btn-load" title="My Designs">📂 Designs</button>
+                <div class="divider"></div>
+                <button id="btn-rotate" title="Rotate Shape (+90deg)" disabled>🔄 Rotate</button>
+                <button id="btn-delete" title="Delete Shape" disabled>🗑️ Delete</button>
                 <button id="btn-reset" title="Reset Board">⚠️ Reset Board</button>
             </div>
         </header>
@@ -39,6 +50,19 @@
                 </svg>
             </section>
         </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="designs-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>My Saved Designs</h2>
+                <span class="close-modal" id="close-designs-modal">&times;</span>
+            </div>
+            <div id="designs-list" class="designs-list">
+                <p>Loading designs...</p>
+            </div>
+        </div>
     </div>
 
     <!-- Modules -->

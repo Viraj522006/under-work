@@ -3,6 +3,7 @@ import { Shapes } from './shapes.js';
 import { DragDrop } from './dragDrop.js';
 import { CollisionEngine } from './collision.js';
 import { CONFIG } from './config.js';
+import { FirebaseDB } from './firebase.js';
 
 const App = {
     score: 0,
@@ -72,6 +73,10 @@ const App = {
         document.getElementById('btn-delete').addEventListener('click', () => this.deleteSelected());
         document.getElementById('btn-reset').addEventListener('click', () => this.resetBoard());
         
+        document.getElementById('btn-save').addEventListener('click', () => this.saveCurrentDesign());
+        document.getElementById('btn-load').addEventListener('click', () => this.openDesignsModal());
+        document.getElementById('close-designs-modal').addEventListener('click', () => this.closeDesignsModal());
+        
         document.addEventListener('keydown', (e) => {
             if (!this.selectedShape) return;
             if (e.key === 'r' || e.key === 'R') {
@@ -125,6 +130,101 @@ const App = {
             const el = shape.element;
             el.classList.add('invalid-placement');
             setTimeout(() => el.classList.remove('invalid-placement'), 200);
+        }
+    },
+
+    async saveCurrentDesign() {
+        const btnSave = document.getElementById('btn-save');
+        btnSave.disabled = true;
+        btnSave.textContent = 'Saving...';
+
+        const shapesData = Shapes.placedShapes.map(s => ({
+            type: s.type,
+            x: s.x,
+            y: s.y,
+            rotation: s.rotation
+        }));
+
+        const designName = prompt("Enter a name for your design:", `Design ${new Date().toLocaleDateString()}`);
+        if (!designName) {
+            btnSave.disabled = false;
+            btnSave.textContent = '💾 Save';
+            return;
+        }
+
+        const success = await FirebaseDB.saveDesign({
+            name: designName,
+            score: this.score,
+            shapes: shapesData
+        });
+
+        if (success) {
+            alert('Design saved successfully!');
+        } else {
+            alert('Failed to save design. Check console for details.');
+        }
+
+        btnSave.disabled = false;
+        btnSave.textContent = '💾 Save';
+    },
+
+    async openDesignsModal() {
+        const modal = document.getElementById('designs-modal');
+        const list = document.getElementById('designs-list');
+        modal.classList.remove('hidden');
+        list.innerHTML = '<p>Loading designs...</p>';
+
+        const designs = await FirebaseDB.getUserDesigns();
+        
+        if (designs.length === 0) {
+            list.innerHTML = '<p>No saved designs found.</p>';
+            return;
+        }
+
+        list.innerHTML = '';
+        designs.forEach(design => {
+            const item = document.createElement('div');
+            item.className = 'design-list-item';
+            
+            const dateStr = design.timestamp ? new Date(design.timestamp.seconds * 1000).toLocaleString() : 'Unknown date';
+            
+            item.innerHTML = `
+                <div>
+                    <strong>${design.name || 'Unnamed'}</strong>
+                    <div class="design-meta">Shapes: ${design.shapes ? design.shapes.length : 0} | Score: ${design.score || 0}</div>
+                    <div class="design-meta">${dateStr}</div>
+                </div>
+                <button class="load-btn">Load</button>
+            `;
+            
+            item.querySelector('.load-btn').addEventListener('click', () => {
+                this.loadSpecificDesign(design);
+                this.closeDesignsModal();
+            });
+
+            list.appendChild(item);
+        });
+    },
+
+    closeDesignsModal() {
+        document.getElementById('designs-modal').classList.add('hidden');
+    },
+
+    loadSpecificDesign(design) {
+        if(confirm('Loading a design will clear your current board. Continue?')) {
+            Shapes.clearAllShapes();
+            this.handleShapeSelected(null);
+            this.score = design.score || 0;
+            this.updateScoreDisplay();
+            
+            if (design.shapes && design.shapes.length > 0) {
+                design.shapes.forEach(shapeData => {
+                    const newShape = Shapes.createShape(shapeData.type, shapeData.x, shapeData.y);
+                    newShape.rotation = shapeData.rotation || 0;
+                    Shapes.updateShapeTransform(newShape);
+                    Shapes.addShape(newShape);
+                });
+            }
         }
     },
 
