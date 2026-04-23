@@ -100,7 +100,7 @@ export const DragDrop = {
         const rawX = coords.x + info.offsetX;
         const rawY = coords.y + info.offsetY;
 
-        const snapped = SnapEngine.snapPoint(rawX, rawY);
+        const snapped = SnapEngine.snapShape(state, rawX, rawY);
 
         state.x = snapped.x;
         state.y = snapped.y;

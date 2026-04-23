@@ -66,6 +66,17 @@ body {
     box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1);
 }
 
+.controls {
+    display: grid;
+    grid-template-columns: repeat(2, 120px) 150px;
+    gap: 14px 16px;
+    align-items: stretch;
+}
+
+.controls .divider {
+    display: none;
+}
+
 .controls button {
     background-color: white;
     border: none;
@@ -73,12 +84,24 @@ body {
     font-size: 1rem;
     font-weight: 700;
     padding: 8px 16px;
-    margin-left: 10px;
+    min-height: 42px;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 4px 0px rgba(0,0,0,0.1);
     font-family: 'Nunito', sans-serif;
+}
+
+.controls #btn-save,
+.controls #btn-load,
+.controls #btn-rotate,
+.controls #btn-delete {
+    width: 120px;
+}
+
+.controls #btn-reset {
+    grid-column: 3;
+    grid-row: 1 / span 2;
 }
 
 .controls button:hover {
