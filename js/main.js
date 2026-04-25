@@ -4,11 +4,17 @@ import { DragDrop } from './dragDrop.js';
 import { CollisionEngine } from './collision.js';
 import { CONFIG } from './config.js';
 import { FirebaseDB } from './firebase.js';
+import { Enhancements } from './enhancements.js';
 
 const App = {
     score: 0,
     selectedShape: null,
     audioCtx: null,
+    backgroundMusicStarted: false,
+    backgroundMusic: null,
+    musicEnabled: false,
+    deleteSoundPool: [],
+    deleteSoundPoolIndex: 0,
 
     init() {
         Board.init();
@@ -17,6 +23,8 @@ const App = {
 
         this.initAudio();
         this.bindEvents();
+        this.updateMusicToggleButton();
+        Enhancements.init(this);
 
         DragDrop.onShapePlaced = (shape) => this.handleShapePlaced(shape);
         DragDrop.onShapeSelected = (shape) => this.handleShapeSelected(shape);
@@ -29,17 +37,109 @@ const App = {
         try {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             this.audioCtx = new AudioContext();
+            this.initDeleteSound();
         } catch(e) {
             console.warn("Web Audio API not supported", e);
         }
     },
 
-    playSound(type) {
+    initDeleteSound() {
+        const deleteSoundPath = './js/assets/delete-pop.mp3';
+        const poolSize = 4;
+
+        this.deleteSoundPool = Array.from({ length: poolSize }, () => {
+            const audio = new Audio(deleteSoundPath);
+            audio.preload = 'auto';
+            audio.volume = 0.14;
+            return audio;
+        });
+    },
+
+    playDeleteSound() {
+        if (!this.deleteSoundPool.length) return;
+
+        const audio = this.deleteSoundPool[this.deleteSoundPoolIndex];
+        this.deleteSoundPoolIndex = (this.deleteSoundPoolIndex + 1) % this.deleteSoundPool.length;
+
+        try {
+            audio.currentTime = 0;
+            const playPromise = audio.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+                playPromise.catch((err) => {
+                    console.warn('Delete sound could not play.', err);
+                });
+            }
+        } catch (err) {
+            console.warn('Delete sound playback failed.', err);
+        }
+    },
+
+    ensureAudioReady() {
         if (!this.audioCtx) return;
-        
+
         if (this.audioCtx.state === 'suspended') {
             this.audioCtx.resume();
         }
+
+        if (!this.backgroundMusicStarted) {
+            this.startBackgroundMusic();
+        }
+    },
+
+    startBackgroundMusic() {
+        if (this.backgroundMusicStarted) return;
+
+        if (!this.backgroundMusic) {
+            this.backgroundMusic = new Audio('./js/assets/Carefree.mp3');
+            this.backgroundMusic.loop = true;
+            this.backgroundMusic.volume = 0.12;
+            this.backgroundMusic.preload = 'auto';
+        }
+
+        this.backgroundMusic.play().catch((err) => {
+            console.warn('Background music could not start yet.', err);
+        });
+
+        this.backgroundMusicStarted = true;
+        this.musicEnabled = true;
+        this.updateMusicToggleButton();
+    },
+
+    toggleBackgroundMusic() {
+        if (!this.backgroundMusic) {
+            this.ensureAudioReady();
+        }
+
+        if (!this.backgroundMusic) return;
+
+        if (this.backgroundMusic.paused) {
+            this.backgroundMusic.play().then(() => {
+                this.musicEnabled = true;
+                this.backgroundMusicStarted = true;
+                this.updateMusicToggleButton();
+            }).catch((err) => {
+                console.warn('Background music could not resume.', err);
+            });
+        } else {
+            this.backgroundMusic.pause();
+            this.musicEnabled = false;
+            this.updateMusicToggleButton();
+        }
+    },
+
+    updateMusicToggleButton() {
+        const button = document.getElementById('btn-music-toggle');
+        if (!button) return;
+
+        button.textContent = this.musicEnabled ? '🔊 Music' : '🔇 Music';
+        button.title = this.musicEnabled ? 'Mute Background Music' : 'Start Background Music';
+        document.querySelector('.game-header h1')?.classList.toggle('title-music-active', this.musicEnabled);
+    },
+
+    playSound(type) {
+        if (!this.audioCtx) return;
+
+        this.ensureAudioReady();
 
         const osc = this.audioCtx.createOscillator();
         const gainNode = this.audioCtx.createGain();
@@ -53,7 +153,7 @@ const App = {
             osc.type = 'sine';
             osc.frequency.setValueAtTime(400, now);
             osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
-            gainNode.gain.setValueAtTime(0.5, now);
+            gainNode.gain.setValueAtTime(0.18, now);
             gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
             osc.start(now);
             osc.stop(now + 0.1);
@@ -61,10 +161,20 @@ const App = {
             osc.type = 'triangle';
             osc.frequency.setValueAtTime(800, now);
             osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
-            gainNode.gain.setValueAtTime(0.3, now);
+            gainNode.gain.setValueAtTime(0.12, now);
             gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
             osc.start(now);
             osc.stop(now + 0.05);
+        } else if (type === 'click') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(620, now);
+            osc.frequency.exponentialRampToValueAtTime(930, now + 0.08);
+            gainNode.gain.setValueAtTime(0.08, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+            osc.start(now);
+            osc.stop(now + 0.08);
+        } else {
+            return;
         }
     },
 
@@ -75,6 +185,7 @@ const App = {
         
         document.getElementById('btn-save').addEventListener('click', () => this.saveCurrentDesign());
         document.getElementById('btn-load').addEventListener('click', () => this.openDesignsModal());
+        document.getElementById('btn-music-toggle').addEventListener('click', () => this.toggleBackgroundMusic());
         document.getElementById('close-designs-modal').addEventListener('click', () => this.closeDesignsModal());
         
         document.addEventListener('keydown', (e) => {
@@ -85,6 +196,10 @@ const App = {
                 this.deleteSelected();
             }
         });
+
+        const unlockAudio = () => this.ensureAudioReady();
+        document.addEventListener('pointerdown', unlockAudio, { once: true });
+        document.addEventListener('keydown', unlockAudio, { once: true });
     },
 
     handleShapePlaced(shape) {
@@ -230,6 +345,7 @@ const App = {
 
     deleteSelected() {
         if (!this.selectedShape) return;
+        this.playDeleteSound();
         Shapes.removeShape(this.selectedShape.id);
         this.handleShapeSelected(null);
     },

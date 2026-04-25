@@ -67,6 +67,7 @@ export const DragDrop = {
             startY: coords.y
         };
 
+        shapeState.element.classList.add('is-dragging');
         shapeState.element.classList.add('selected');
         if (this.onShapeSelected) this.onShapeSelected(shapeState);
     },
@@ -86,6 +87,7 @@ export const DragDrop = {
             startY: shapeState.y
         };
 
+        shapeState.element.classList.add('is-dragging');
         shapeState.element.classList.add('selected');
         if (this.onShapeSelected) this.onShapeSelected(shapeState);
     },
@@ -123,6 +125,7 @@ export const DragDrop = {
         const info = this.draggedShapeInfo;
         const state = info.shapeState;
         
+        state.element.classList.remove('is-dragging');
         state.element.classList.remove('valid-placement', 'invalid-placement');
 
         const isValid = CollisionEngine.isValidPlacement(state, state.x, state.y, state.rotation);
