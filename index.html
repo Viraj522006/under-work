@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digital Peg Board Geometry Game</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=ui-effects-1">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <script type="importmap">
       {
@@ -15,6 +16,7 @@
       }
     </script>
 </head>
+
 <body>
     <div class="game-container">
         <header class="game-header">
@@ -23,16 +25,14 @@
                 Score: <span id="score">0</span>
             </div>
             <div class="controls">
-                <button id="btn-save" title="Save Design">💾 Save</button>
-                <button id="btn-load" title="My Designs">📂 Designs</button>
                 <button id="btn-music-toggle" title="Start Background Music">🔇 Music</button>
                 <div class="divider"></div>
                 <button id="btn-rotate" title="Rotate Shape (+90deg)" disabled>🔄 Rotate</button>
                 <button id="btn-delete" title="Delete Shape" disabled>🗑️ Delete</button>
-                <button id="btn-reset" title="Reset Board">⚠️ Reset Board</button>
+                <button id="btn-reset" title="Reset Board">⚠️ Reset</button>
             </div>
         </header>
-        
+
         <main class="game-main">
             <aside class="shape-panel" id="shape-panel">
                 <h2>Shapes</h2>
@@ -40,7 +40,7 @@
                     <!-- Shapes will be injected here by shapes.js -->
                 </div>
             </aside>
-            
+
             <section class="board-container" id="board-container">
                 <svg id="peg-board" xmlns="http://www.w3.org/2000/svg">
                     <!-- Pegs and dropped shapes will be added here -->
@@ -51,6 +51,15 @@
                 </svg>
             </section>
         </main>
+    </div>
+
+    <div class="quick-menu" id="quick-menu">
+        <div class="quick-menu-dropdown" id="quick-menu-dropdown" aria-hidden="true">
+            <button id="btn-save" class="quick-menu-action" title="Save Design">💾 Save</button>
+            <button id="btn-load" class="quick-menu-action" title="My Designs">📁 Designs</button>
+        </div>
+        <button class="quick-menu-toggle" id="quick-menu-toggle" type="button" aria-label="Open quick actions"
+            aria-controls="quick-menu-dropdown" aria-expanded="false">⋯</button>
     </div>
 
     <!-- Modals -->
@@ -68,5 +77,19 @@
 
     <!-- Modules -->
     <script type="module" src="js/main.js"></script>
+    <script src="js/uiEffects.js?v=ui-effects-1"></script>
+    <script>
+        const quickMenu = document.getElementById('quick-menu');
+        const quickMenuToggle = document.getElementById('quick-menu-toggle');
+        const quickMenuDropdown = document.getElementById('quick-menu-dropdown');
+
+        quickMenuToggle.addEventListener('click', () => {
+            const isOpen = quickMenu.classList.toggle('is-open');
+            quickMenuToggle.setAttribute('aria-expanded', isOpen);
+            quickMenuDropdown.setAttribute('aria-hidden', !isOpen);
+        });
+    </script>
+    <div id="colorPalette"></div>
 </body>
+
 </html>

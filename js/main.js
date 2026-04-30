@@ -28,7 +28,7 @@ const App = {
 
         DragDrop.onShapePlaced = (shape) => this.handleShapePlaced(shape);
         DragDrop.onShapeSelected = (shape) => this.handleShapeSelected(shape);
-        
+
         // Initial state disable interaction buttons
         this.handleShapeSelected(null);
     },
@@ -38,7 +38,7 @@ const App = {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             this.audioCtx = new AudioContext();
             this.initDeleteSound();
-        } catch(e) {
+        } catch (e) {
             console.warn("Web Audio API not supported", e);
         }
     },
@@ -50,7 +50,7 @@ const App = {
         this.deleteSoundPool = Array.from({ length: poolSize }, () => {
             const audio = new Audio(deleteSoundPath);
             audio.preload = 'auto';
-            audio.volume = 0.14;
+            audio.volume = 1.0;
             return audio;
         });
     },
@@ -92,7 +92,7 @@ const App = {
         if (!this.backgroundMusic) {
             this.backgroundMusic = new Audio('./js/assets/Carefree.mp3');
             this.backgroundMusic.loop = true;
-            this.backgroundMusic.volume = 0.12;
+            this.backgroundMusic.volume = 0.60;
             this.backgroundMusic.preload = 'auto';
         }
 
@@ -182,12 +182,12 @@ const App = {
         document.getElementById('btn-rotate').addEventListener('click', () => this.rotateSelected());
         document.getElementById('btn-delete').addEventListener('click', () => this.deleteSelected());
         document.getElementById('btn-reset').addEventListener('click', () => this.resetBoard());
-        
+
         document.getElementById('btn-save').addEventListener('click', () => this.saveCurrentDesign());
         document.getElementById('btn-load').addEventListener('click', () => this.openDesignsModal());
         document.getElementById('btn-music-toggle').addEventListener('click', () => this.toggleBackgroundMusic());
         document.getElementById('close-designs-modal').addEventListener('click', () => this.closeDesignsModal());
-        
+
         document.addEventListener('keydown', (e) => {
             if (!this.selectedShape) return;
             if (e.key === 'r' || e.key === 'R') {
@@ -215,10 +215,10 @@ const App = {
         }
 
         this.selectedShape = shape;
-        
+
         const btnRotate = document.getElementById('btn-rotate');
         const btnDelete = document.getElementById('btn-delete');
-        
+
         if (shape) {
             shape.element.classList.add('selected');
             btnRotate.disabled = false;
@@ -231,12 +231,12 @@ const App = {
 
     rotateSelected() {
         if (!this.selectedShape) return;
-        
+
         const shape = this.selectedShape;
         const oldRotation = shape.rotation;
-        
+
         shape.rotation = (shape.rotation + 90) % 360;
-        
+
         if (CollisionEngine.isValidPlacement(shape, shape.x, shape.y, shape.rotation)) {
             Shapes.updateShapeTransform(shape);
             this.playSound('rotate');
@@ -290,7 +290,7 @@ const App = {
         list.innerHTML = '<p>Loading designs...</p>';
 
         const designs = await FirebaseDB.getUserDesigns();
-        
+
         if (designs.length === 0) {
             list.innerHTML = '<p>No saved designs found.</p>';
             return;
@@ -300,9 +300,9 @@ const App = {
         designs.forEach(design => {
             const item = document.createElement('div');
             item.className = 'design-list-item';
-            
+
             const dateStr = design.timestamp ? new Date(design.timestamp.seconds * 1000).toLocaleString() : 'Unknown date';
-            
+
             item.innerHTML = `
                 <div>
                     <strong>${design.name || 'Unnamed'}</strong>
@@ -311,7 +311,7 @@ const App = {
                 </div>
                 <button class="load-btn">Load</button>
             `;
-            
+
             item.querySelector('.load-btn').addEventListener('click', () => {
                 this.loadSpecificDesign(design);
                 this.closeDesignsModal();
@@ -326,12 +326,12 @@ const App = {
     },
 
     loadSpecificDesign(design) {
-        if(confirm('Loading a design will clear your current board. Continue?')) {
+        if (confirm('Loading a design will clear your current board. Continue?')) {
             Shapes.clearAllShapes();
             this.handleShapeSelected(null);
             this.score = design.score || 0;
             this.updateScoreDisplay();
-            
+
             if (design.shapes && design.shapes.length > 0) {
                 design.shapes.forEach(shapeData => {
                     const newShape = Shapes.createShape(shapeData.type, shapeData.x, shapeData.y);
@@ -351,7 +351,7 @@ const App = {
     },
 
     resetBoard() {
-        if(confirm('Are you sure you want to reset the board?')) {
+        if (confirm('Are you sure you want to reset the board?')) {
             Shapes.clearAllShapes();
             this.handleShapeSelected(null);
             this.score = 0;
